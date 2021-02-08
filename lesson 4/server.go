@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"./lib"
@@ -61,11 +62,17 @@ func parseSync(w http.ResponseWriter, r *http.Request) {
 func parseAsync(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	b := readReq(r)
+	var wg sync.WaitGroup
 
 	for _, url := range b.Urls {
-		go getRequest(url)
+		wg.Add(1)
+		go func(url string, wg *sync.WaitGroup) {
+			getRequest(url)
+			wg.Done()
+		}(url, &wg)
 	}
 
+	wg.Wait()
 	fmt.Fprintf(w, "time spend: %s", time.Since(start))
 }
 
