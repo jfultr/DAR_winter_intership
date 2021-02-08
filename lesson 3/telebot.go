@@ -58,6 +58,10 @@ func isAnswered(update lib.Update, answered map[int][]int) bool {
 
 func tweakAnswer(update lib.Update, answered *map[int][]int) string {
 	switch text := update.Message.Text; text {
+	case "/start":
+		return "Рабочие фразы: 1.привет 2.как дела? 3.ты живой?"
+	case "/help":
+		return "Напиши: 1.привет 2.как дела? 3.ты живой?"
 	case "привет":
 		return "Добрый день!"
 	case "как дела?":
