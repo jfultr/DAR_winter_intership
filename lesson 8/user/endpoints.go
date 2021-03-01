@@ -31,10 +31,10 @@ func makeCreateUserEndpoint(s Service) endpoint.Endpoint {
 func makeGetUserEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(GetUserRequest)
-		email, err := s.GetUser(ctx, req.ID)
+		name, err := s.GetUser(ctx, req.ID)
 
 		return GetUserResponse{
-			Email: email,
+			Name: name,
 		}, err
 	}
 }

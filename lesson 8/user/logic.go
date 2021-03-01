@@ -44,7 +44,7 @@ func (s service) CreateUser(ctx context.Context, name string) (string, error) {
 func (s service) GetUser(ctx context.Context, id string) (string, error) {
 	logger := log.With(s.logger, "method", "GetUser")
 
-	email, err := s.repostory.GetUser(ctx, id)
+	name, err := s.repostory.GetUser(ctx, id)
 
 	if err != nil {
 		level.Error(logger).Log("err", err)
@@ -53,5 +53,5 @@ func (s service) GetUser(ctx context.Context, id string) (string, error) {
 
 	logger.Log("Get user", id)
 
-	return email, nil
+	return name, nil
 }
