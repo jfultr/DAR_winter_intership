@@ -142,7 +142,7 @@ func TestOpenWeatherMap_responseParser(t *testing.T) {
 
 func TestOpenWeatherMap_GetByCityAndCountryCode(t *testing.T) {
 	weatherMap := CurrentWeatherData{"683e0d61cbadebc3b5f325efd8286803"}
-	weather, err := weatherMap.GetByCityAndCountryCode("Astana", "KZ")
+	weather, err := weatherMap.GetByCityAndCountryCode("Almaty", "KZ")
 	if err != nil {
 		t.Fatal(err)
 	}
