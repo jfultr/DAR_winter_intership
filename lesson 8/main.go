@@ -5,14 +5,15 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
+	"net"
 
 	_ "github.com/lib/pq"
+	"google.golang.org/grpc"
 
 	"github.com/go-kit/kit/log"
 
 	"github.com/go-kit/kit/log/level"
 
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -23,7 +24,6 @@ import (
 const dbsource = "postgresql://postgres:6378@localhost:5432/postgres?sslmode=disable"
 
 func main() {
-	var httpAddr = flag.String("http", ":8080", "http listen address")
 	var logger log.Logger
 	{
 		logger = log.NewLogfmtLogger(os.Stderr)
@@ -67,12 +67,20 @@ func main() {
 		errs <- fmt.Errorf("%s", <-c)
 	}()
 
+	grpcListener, err := net.Listen("tcp", ":50051")
+	if err != nil {
+		logger.Log("during", "Listen", "err", err)
+		os.Exit(1)
+	}
+
 	endpoints := user.MakeEndpoints(srv)
+	grpcServer := user.NewGRPCServer(ctx, endpoints)
 
 	go func() {
-		fmt.Println("listening on port", *httpAddr)
-		handler := user.NewHTTPServer(ctx, endpoints)
-		errs <- http.ListenAndServe(*httpAddr, handler)
+		baseServer := grpc.NewServer()
+		user.RegisterUserServiceServer(baseServer, grpcServer)
+		level.Info(logger).Log("msg", "Server started successfully 🚀")
+		baseServer.Serve(grpcListener)
 	}()
 
 	level.Error(logger).Log("exit", <-errs)
