@@ -2,36 +2,67 @@ package user
 
 import (
 	"context"
-	"net/http"
 
-	httptransport "github.com/go-kit/kit/transport/http"
-	"github.com/gorilla/mux"
+	gt "github.com/go-kit/kit/transport/grpc"
 )
 
-// NewHTTPServer creates new server
-func NewHTTPServer(ctx context.Context, endpoints Endpoints) http.Handler {
-	r := mux.NewRouter()
-	r.Use(commonMiddleware)
-
-	r.Methods("POST").Path("/user").Handler(httptransport.NewServer(
-		endpoints.CreateUser,
-		decodeUserReq,
-		encodeResponse,
-	))
-
-	r.Methods("GET").Path("/user/{id}").Handler(httptransport.NewServer(
-		endpoints.GetUser,
-		decodeNameReq,
-		encodeResponse,
-	))
-
-	return r
-
+type mustIm struct {
+}
+type gRPCServer struct {
+	createUser gt.Handler
+	getUser    gt.Handler
+	mi         mustIm
 }
 
-func commonMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "application/json")
-		next.ServeHTTP(w, r)
-	})
+// NewGRPCServer creates new server
+func NewGRPCServer(ctx context.Context, endpoints Endpoints) UserServiceServer {
+	return &gRPCServer{
+		createUser: gt.NewServer(
+			endpoints.CreateUser,
+			decodeUserReq,
+			encodeUserResponse,
+		),
+		getUser: gt.NewServer(
+			endpoints.GetUser,
+			decodeNameReq,
+			encodeNameResponse,
+		),
+		mi: mustIm{},
+	}
+}
+
+func (s *gRPCServer) CreateUser(ctx context.Context, req *CreateUserRequest) (*CreateUserResponse, error) {
+	_, resp, err := s.createUser.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return resp.(*CreateUserResponse), nil
+}
+
+func (s *gRPCServer) GetUser(ctx context.Context, req *GetUserRequest) (*GetUserResponse, error) {
+	_, resp, err := s.getUser.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return resp.(*GetUserResponse), nil
+}
+
+func decodeUserReq(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*CreateUserRequest)
+	return CreateUserReq{Name: req.Name}, nil
+}
+
+func encodeUserResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(CreateUserResp)
+	return &CreateUserResponse{Ok: resp.Ok}, nil
+}
+
+func decodeNameReq(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*GetUserRequest)
+	return GetUserReq{ID: req.ID}, nil
+}
+
+func encodeNameResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(GetUserResp)
+	return &GetUserResponse{Name: resp.Name}, nil
 }
