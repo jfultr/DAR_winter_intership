@@ -67,7 +67,7 @@ func main() {
 		errs <- fmt.Errorf("%s", <-c)
 	}()
 
-	grpcListener, err := net.Listen("tcp", ":50051")
+	grpcListener, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		logger.Log("during", "Listen", "err", err)
 		os.Exit(1)
