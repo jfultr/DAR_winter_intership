@@ -7,6 +7,11 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/jfultr/DAR_winter_intership/lesson_8/pb"
+	"github.com/jfultr/DAR_winter_intership/lesson_8/pkg/addendpoint"
+	"github.com/jfultr/DAR_winter_intership/lesson_8/pkg/addservice"
+	"github.com/jfultr/DAR_winter_intership/lesson_8/pkg/addtransport"
+
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 
@@ -17,8 +22,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-
-	"./user"
 )
 
 const dbsource = "postgresql://postgres:6378@localhost:5432/postgres?sslmode=disable"
@@ -52,11 +55,11 @@ func main() {
 
 	flag.Parse()
 	ctx := context.Background()
-	var srv user.Service
+	var srv addservice.Service
 	{
-		repository := user.NewRepo(db, logger)
+		repository := addservice.NewRepo(db, logger)
 
-		srv = user.NewService(repository, logger)
+		srv = addservice.NewService(repository, logger)
 	}
 
 	errs := make(chan error)
@@ -73,12 +76,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	endpoints := user.MakeEndpoints(srv)
-	grpcServer := user.NewGRPCServer(ctx, endpoints)
+	endpoints := addendpoint.MakeEndpoints(srv)
+	grpcServer := addtransport.NewGRPCServer(ctx, endpoints)
 
 	go func() {
 		baseServer := grpc.NewServer()
-		user.RegisterUserServiceServer(baseServer, grpcServer)
+		pb.RegisterUserServiceServer(baseServer, grpcServer)
 		level.Info(logger).Log("msg", "Server started successfully 🚀")
 		baseServer.Serve(grpcListener)
 	}()

@@ -1,4 +1,4 @@
-package user
+package addservice
 
 import (
 	"context"
@@ -7,6 +7,18 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/gofrs/uuid"
 )
+
+// User interface
+type User struct {
+	ID   string `json:"id,omitempty"`
+	Name string `json:"name"`
+}
+
+// Service interface
+type Service interface {
+	CreateUser(ctx context.Context, name string) (string, error)
+	GetUser(ctx context.Context, id string) (string, error)
+}
 
 // NewService creates new service
 func NewService(rep Repository, logger log.Logger) Service {

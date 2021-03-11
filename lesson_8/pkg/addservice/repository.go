@@ -1,4 +1,4 @@
-package user
+package addservice
 
 import (
 	"context"
@@ -7,6 +7,12 @@ import (
 
 	"github.com/go-kit/kit/log"
 )
+
+// Repository interface
+type Repository interface {
+	CreateUser(ctx context.Context, user User) error
+	GetUser(ctx context.Context, id string) (string, error)
+}
 
 // ErrRepo repository error
 var ErrRepo = errors.New("Unable to handle Repo Request")
