@@ -34,7 +34,6 @@ func (repo *repo) CreateUser(ctx context.Context, user User) error {
 	sql := `
 		INSERT INTO users (id, name)
 		VALUES ($1, $2)`
-
 	if user.Name == "" {
 		return ErrRepo
 	}
