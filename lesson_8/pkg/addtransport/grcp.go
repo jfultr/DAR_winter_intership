@@ -18,13 +18,13 @@ func NewGRPCServer(ctx context.Context, endpoints addendpoint.Endpoints) pb.User
 	return &gRPCServer{
 		createUser: gt.NewServer(
 			endpoints.CreateUserEndpoint,
-			decodeUserReq,
-			encodeUserResponse,
+			decodeGRCPUserReq,
+			encodeGRCPUserResponse,
 		),
 		getUser: gt.NewServer(
 			endpoints.GetUserEndpoint,
-			decodeNameReq,
-			encodeNameResponse,
+			decodeGRCPNameReq,
+			encodeGRCPNameResponse,
 		),
 	}
 }
@@ -88,22 +88,22 @@ func (s *gRPCServer) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.G
 	return resp.(*pb.GetUserResponse), nil
 }
 
-func decodeUserReq(_ context.Context, request interface{}) (interface{}, error) {
+func decodeGRCPUserReq(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(*pb.CreateUserRequest)
 	return addendpoint.CreateUserReq{Name: req.Name}, nil
 }
 
-func encodeUserResponse(_ context.Context, response interface{}) (interface{}, error) {
+func encodeGRCPUserResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(addendpoint.CreateUserResp)
 	return &pb.CreateUserResponse{Ok: resp.Ok}, nil
 }
 
-func decodeNameReq(_ context.Context, request interface{}) (interface{}, error) {
+func decodeGRCPNameReq(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(*pb.GetUserRequest)
 	return addendpoint.GetUserReq{ID: req.ID}, nil
 }
 
-func encodeNameResponse(_ context.Context, response interface{}) (interface{}, error) {
+func encodeGRCPNameResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(addendpoint.GetUserResp)
 	return &pb.GetUserResponse{Name: resp.Name}, nil
 }

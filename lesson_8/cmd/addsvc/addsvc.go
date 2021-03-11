@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"net/http"
 
 	"github.com/jfultr/DAR_winter_intership/lesson_8/pb"
 	"github.com/jfultr/DAR_winter_intership/lesson_8/pkg/addendpoint"
@@ -55,14 +56,28 @@ func main() {
 
 	flag.Parse()
 	ctx := context.Background()
-	var srv addservice.Service
-	{
-		repository := addservice.NewRepo(db, logger)
 
-		srv = addservice.NewService(repository, logger)
-	}
+	var (
+		repository  = addservice.NewRepo(db, logger)
+		srv         = addservice.NewService(repository, logger)
+		endpoints   = addendpoint.MakeEndpoints(srv)
+		grpcServer  = addtransport.NewGRPCServer(ctx, endpoints)
+		httpHandler = addtransport.NewHTTPServer(ctx, endpoints)
+	)
 
 	errs := make(chan error)
+
+	grpcListener, err := net.Listen("tcp", ":8080")
+	if err != nil {
+		logger.Log("transport", "gRPC", "during", "Listen", "err", err)
+		os.Exit(1)
+	}
+
+	httpListener, err := net.Listen("tcp", ":8081")
+	if err != nil {
+		logger.Log("transport", "HTTP", "during", "Listen", "err", err)
+		os.Exit(1)
+	}
 
 	go func() {
 		c := make(chan os.Signal, 1)
@@ -70,20 +85,16 @@ func main() {
 		errs <- fmt.Errorf("%s", <-c)
 	}()
 
-	grpcListener, err := net.Listen("tcp", ":8080")
-	if err != nil {
-		logger.Log("during", "Listen", "err", err)
-		os.Exit(1)
-	}
-
-	endpoints := addendpoint.MakeEndpoints(srv)
-	grpcServer := addtransport.NewGRPCServer(ctx, endpoints)
-
 	go func() {
 		baseServer := grpc.NewServer()
 		pb.RegisterUserServiceServer(baseServer, grpcServer)
-		level.Info(logger).Log("msg", "Server started successfully 🚀")
+		level.Info(logger).Log("msg", "gRCP addr 8080")
 		baseServer.Serve(grpcListener)
+	}()
+
+	go func() {
+		level.Info(logger).Log("msg", "HTTP addr 8081")
+		http.Serve(httpListener, httpHandler)
 	}()
 
 	level.Error(logger).Log("exit", <-errs)
