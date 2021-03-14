@@ -29,49 +29,6 @@ func NewGRPCServer(ctx context.Context, endpoints addendpoint.Endpoints) pb.User
 	}
 }
 
-// // NewGRPCClient returns client
-// func NewGRPCClient(conn *grpc.ClientConn, logger log.Logger) addservice.Service {
-
-// 	// Each individual endpoint is an grpc/transport.Client (which implements
-// 	// endpoint.Endpoint) that gets wrapped with various middlewares. If you
-// 	// made your own client library, you'd do this work there, so your server
-// 	// could rely on a consistent set of client behavior.
-// 	var createUserEndpoint endpoint.Endpoint
-// 	{
-// 		createUserEndpoint = gt.NewClient(
-// 			conn,
-// 			"pb.UserService",
-// 			"CreateUser",
-// 			decodeUserReq,
-// 			encodeUserResponse,
-// 			pb.CreateUserResponse{},
-// 		).Endpoint()
-
-// 	}
-
-// 	// The Concat endpoint is the same thing, with slightly different
-// 	// middlewares to demonstrate how to specialize per-endpoint.
-// 	var getUserEndpoint endpoint.Endpoint
-// 	{
-// 		getUserEndpoint = gt.NewClient(
-// 			conn,
-// 			"pb.UserService",
-// 			"GetUser",
-// 			decodeNameReq,
-// 			encodeNameResponse,
-// 			pb.GetUserResponse{},
-// 		).Endpoint()
-// 	}
-
-// 	// Returning the endpoint.Set as a service.Service relies on the
-// 	// endpoint.Set implementing the Service methods. That's just a simple bit
-// 	// of glue code.
-// 	return addendpoint.Endpoints{
-// 		CreateUserEndpoint: createUserEndpoint,
-// 		GetUserEndpoint:    getUserEndpoint,
-// 	}
-// }
-
 func (s *gRPCServer) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
 	_, resp, err := s.createUser.ServeGRPC(ctx, req)
 	if err != nil {
