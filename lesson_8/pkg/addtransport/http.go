@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/go-kit/kit/auth/basic"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 	"github.com/jfultr/DAR_winter_intership/lesson_8/pkg/addendpoint"
@@ -17,11 +16,10 @@ func NewHTTPServer(ctx context.Context, endpoints addendpoint.Endpoints) http.Ha
 	r.Use(commonMiddleware)
 
 	r.Methods("POST").Path("/user").Handler(httptransport.NewServer(
-		basic.AuthMiddleware("lol", "lul", "Example Realm")(endpoints.CreateUserEndpoint),
-		// endpoints.CreateUserEndpoint,
+		AuthMiddleware("jwt", endpoints.CreateUserEndpoint),
 		decodeHTTPUserReq,
 		encodeHTTPResponse,
-		httptransport.ServerBefore(httptransport.PopulateRequestContext),
+		httptransport.ServerBefore(GetContext("jwt")),
 	))
 
 	r.Methods("GET").Path("/user/{id}").Handler(httptransport.NewServer(
@@ -31,7 +29,6 @@ func NewHTTPServer(ctx context.Context, endpoints addendpoint.Endpoints) http.Ha
 	))
 
 	return r
-
 }
 
 func commonMiddleware(next http.Handler) http.Handler {
